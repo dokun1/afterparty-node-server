@@ -6,8 +6,4 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.get('/echo', (req, res, next) => {
-  res.send({'response': 'json'});
-});
-
 module.exports = router;
