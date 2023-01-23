@@ -5,6 +5,7 @@ const { find } = require('./../models/eventModel');
 const Event = require('./../models/eventModel');
 
 // Get events near a latitude and longitude
+// radius should be provided in meters
 router.get('/', async (req, res) => {
     if (!req.query.latitude) { 
         res.status(400)
@@ -14,15 +15,25 @@ router.get('/', async (req, res) => {
         res.status(400)
         res.json({'error': 'your events request must include a longitude.'});
     }
-    let latitude = req.query.latitude;
-    let longitude = req.query.longitude;
-    var radius = 50;
-    if (req.query.radius) { radius = req.query.radius }
-    Event(find)
+    var radius = req.query.radius ?? 50;
+    let nearbyEvents = await Event.find({
+        location: {
+            $geoWithin: {
+                $centerSphere: [[req.query.longitude, req.query.latitude],distanceSearchRadius(radius) ]
+            }
+        }
+    });
+    let returnedEvents = nearbyEvents.map(event => event.toiOSClient());
+    res.status(200);
+    res.json([returnedEvents]);
 });
 
+function distanceSearchRadius(meters) {
+    return meters / 6378152.1408;
+}
+
 router.get('/:eventId', async (req, res) => {
-    Event.findById(req.params.eventId, (error, documents) => {
+    await Event.findById(req.params.eventId, (error, documents) => {
         if (error) { 
             res.sendStatus(404); 
         } else {
@@ -35,7 +46,7 @@ router.get('/:eventId', async (req, res) => {
 router.post('/', async (req, res) => {
     let now = new Date();
     const newEvent = new Event({
-        place: { geocodes: { latitude: req.body.place.geocodes.latitude, longitude: req.body.place.geocodes.longitude}},
+        location: { type: "Point", coordinates: [req.body.location.longitude, req.body.location.latitude] },
         foursquareData: { id: req.body.foursquareData.id, name: req.body.foursquareData.name, address: { formattedString: req.body.foursquareData.address.formattedString }, category: { name: req.body.foursquareData.category.name, id: req.body.foursquareData.category.id }},
         name: req.body.name,
         createdBy: req.body.createdBy,
@@ -49,6 +60,7 @@ router.post('/', async (req, res) => {
 
     await newEvent.save((error, result) => {
         if (error) {
+            console.log(error);
             res.status(400);
             res.json({'error': 'Could not create new object'});
         } else {
