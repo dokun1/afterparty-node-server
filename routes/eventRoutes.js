@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
     });
     let returnedEvents = nearbyEvents.map(event => event.toiOSClient());
     res.status(200);
-    res.json([returnedEvents]);
+    res.json({"events": returnedEvents});
 });
 
 function distanceSearchRadius(meters) {
