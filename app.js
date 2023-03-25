@@ -10,9 +10,7 @@ var indexRouter = require('./routes/indexRoutes');
 var usersRouter = require('./routes/userRoutes');
 var eventsRouter = require('./routes/eventRoutes');
 
-function distanceSearchRadius(meters) {
-  return meters / 6378152.1408;
-}
+
 
 var app = express();
 

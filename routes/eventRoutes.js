@@ -7,23 +7,34 @@ const Event = require('./../models/eventModel');
 // Get events near a latitude and longitude
 // radius should be provided in meters
 router.get('/', async (req, res) => {
-    if (!req.query.latitude) { 
-        res.status(400)
-        res.json({'error': 'your events request must include a latitude.'});
+    let parameters = {};
+    const eventName = req.query.eventName;
+    if (eventName != null) {
+        if (eventName.trim().length < 3) {
+            res.status(400);
+            return res.json({"error": "A request containing a name query parameter needs to be at least three characters long"});
+        } else {
+            parameters.name = {
+                $regex: eventName,
+                $options: 'i'
+            }
+        }
     }
-    if (!req.query.longitude) {
+    const latitude = req.query.latitude;
+    const longitude = req.query.longitude;
+    if ((latitude == null && longitude != null) || (latitude != null && longitude == null)) {
         res.status(400)
-        res.json({'error': 'your events request must include a longitude.'});
-    }
-    var radius = req.query.radius ?? 50;
-    let nearbyEvents = await Event.find({
-        location: {
+        res.json({'error': 'Your events request must include both a latitude and longitude.'});
+    } else if (latitude != null && longitude != null) {
+        var radius = req.query.radius ?? 50;
+        parameters.location = {
             $geoWithin: {
                 $centerSphere: [[req.query.longitude, req.query.latitude],distanceSearchRadius(radius) ]
             }
         }
-    });
-    let returnedEvents = nearbyEvents.map(event => event.toiOSClient());
+    }
+    let possibleMatches = await Event.find(parameters);
+    let returnedEvents = possibleMatches.map(event => event.toiOSClient());
     res.status(200);
     res.json({"events": returnedEvents});
 });
@@ -32,8 +43,9 @@ function distanceSearchRadius(meters) {
     return meters / 6378152.1408;
 }
 
-router.get('/:eventId', async (req, res) => {
-    await Event.findById(req.params.eventId, (error, documents) => {
+router.get('/:id', async (req, res) => {
+    const id = req.params.id;
+    Event.findById(id, (error, documents) => {
         if (error) { 
             res.sendStatus(404); 
         } else {
