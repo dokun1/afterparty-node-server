@@ -3,6 +3,15 @@ var router = express.Router();
 const mongoose = require("mongoose");
 const { find } = require('./../models/eventModel');
 const Event = require('./../models/eventModel');
+const AWS = require("aws-sdk");
+
+AWS.config.update({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: "us-east-1"
+});
+
+const s3 = new AWS.S3();
 
 // Get events near a latitude and longitude
 // radius should be provided in meters
@@ -55,6 +64,25 @@ router.get('/:id', async (req, res) => {
     });
 });
 
+function setUpNewImageFolder(event) {
+    console.log(event);
+    const folderName = event.id.toString() + "/";
+
+    const params = {
+      Bucket: 'afterparty-staging-images',
+      Key: folderName,
+      Body: ''
+    };
+    console.log(params);
+    s3.putObject(params, (err, data) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log(`Successfully created folder ${folderName} in S3 bucket`);
+      }
+    });
+}
+
 router.post('/', async (req, res) => {
     let now = new Date();
     const newEvent = new Event({
@@ -77,8 +105,9 @@ router.post('/', async (req, res) => {
             res.json({'error': 'Could not create new object'});
         } else {
             res.status(201);
-            console.log(result);
-            res.json({'result': 'success'});
+            let response = result.toiOSClient();
+            setUpNewImageFolder(response);
+            res.json(response);
         }
     })
 });
