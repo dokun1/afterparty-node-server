@@ -65,9 +65,10 @@ router.get('/:id', async (req, res) => {
 });
 
 function setUpNewImageFolder(event) {
+    const folderName = event.id.toString() + "/";
     const params = {
       Bucket: 'afterparty-staging-images',
-      Key: event.id.toString() + "/";,
+      Key: folderName,
       Body: ''
     };
     s3.putObject(params, (err, data) => {
