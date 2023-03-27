@@ -129,7 +129,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
     let now = new Date();
     let endDate = new Date(req.body.endDate);
-    let destroyDate = newDate(endDate);
+    let destroyDate = new Date(endDate);
     destroyDate.setHours(endDate.getHours() + 24);
     const newEvent = new Event({
         location: { type: "Point", coordinates: [req.body.location.longitude, req.body.location.latitude] },
