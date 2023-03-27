@@ -17,19 +17,6 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 
-// router.get('/:id', async (req, res) => {
-//     const id = req.params.id;
-//     Photo.findById(id, (error, documents) => {
-//         if (error) { 
-//             res.sendStatus(404); 
-//         } else {
-//             let returnedPhoto = documents[0].toiOSClient();
-//             res.status(200);
-//             res.json(returnedPhoto);
-//         }
-//     });
-// });
-
 const upload = multer({
     storage: multerS3({
         s3: s3,
@@ -40,24 +27,29 @@ const upload = multer({
         key: function (req, file, cb) {
             const fileName = Date.now().toString() + "-" + file.originalname;
             const path = req.params.eventId + "/fullSize/" + fileName;
-            console.log("Will upload to path: " + path);
             cb(null, path);
         }
     })
 });
 
-function uploadThumbnail(originalImage) {
-    sizeOf(originalImage, (err, dimensions) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log(dimensions.width, dimensions.height);
-        }
-    });
-}
 
+/**
+ * @swagger
+ * /photos/eventId
+ *   get:
+ *     summary: Return all photos for a given event
+ *     description: Return all photos for a given event
+ *     responses:
+ *       200:
+ *         description: a list of photo objects for an event
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Photo"
+ */
 router.get('/:eventId', async (req, res) => {
-    console.log("route hit");
     let parameters = {};
     let eventId = req.params.eventId;
     if (eventId != null) {
@@ -71,6 +63,22 @@ router.get('/:eventId', async (req, res) => {
     res.json({"photos": returnedPhotos});
 });
 
+/**
+ * @swagger
+ * /photos/eventId/userId/upload:
+ *   post:
+ *     summary: Add a new photo for a given event from a given user
+ *     description: Add a new photo for a given event from a given user
+ *     responses:
+ *       201:
+ *         description: Returns a photo object that has just been created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: photo
+ *               items:
+ *                 $ref: "#/components/schemas/Photo"
+ */
 router.post('/:eventId/:userId/upload', upload.single("uploadedImage"), async (req, res) => {
     res.status(201);
     let now = new Date();
@@ -79,7 +87,9 @@ router.post('/:eventId/:userId/upload', upload.single("uploadedImage"), async (r
         createdBy: req.params.userId,
         createdAt: now,
         fullSizeUrl: req.file.location,
-        thumbnailUrl: null
+        thumbnailUrl: null,
+        likes: 0,
+        comments: 0
     });
     await newPhoto.save((error, result) => {
         if (error) {

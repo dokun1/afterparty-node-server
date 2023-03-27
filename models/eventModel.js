@@ -13,6 +13,7 @@ const EventSchema = new Schema({
   createdAt: Date,
   startDate: Date,
   endDate: Date,
+  destroyDate: Date,
   lastUpdated: Date
 });
 
@@ -36,6 +37,7 @@ EventSchema.methods.toiOSClient = function () {
     description: this.description,
     startDate: this.startDate,
     endDate: this.endDate,
+    destroyDate: this.destroyDate,
     location: { longitude: this.location.coordinates[0], latitude: this.location.coordinates[1] },
     foursquareData: { id: this.foursquareData.id, name: this.foursquareData.name, address: { formattedString: this.foursquareData.address.formattedString }, category: { name: this.foursquareData.category.name, id: this.foursquareData.category.id } }
   }

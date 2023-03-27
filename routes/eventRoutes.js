@@ -13,8 +13,42 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 
-// Get events near a latitude and longitude
-// radius should be provided in meters
+function setUpNewImageFolder(event) {
+    const folderName = event.id.toString() + "/";
+    const params = {
+      Bucket: 'afterparty-staging-images',
+      Key: folderName,
+      Body: ''
+    };
+    s3.putObject(params, (err, data) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log(`Successfully created folder ${folderName} in S3 bucket`);
+      }
+    });
+}
+
+function distanceSearchRadius(meters) {
+    return meters / 6378152.1408;
+}
+
+/**
+ * @swagger
+ * /events:
+ *   get:
+ *     summary: Get a list of events that are active
+ *     description: Returns a list of events that can be joined
+ *     responses:
+ *       200:
+ *         description: A list of events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Event"
+ */
 router.get('/', async (req, res) => {
     let parameters = {};
     const eventName = req.query.eventName;
@@ -48,10 +82,22 @@ router.get('/', async (req, res) => {
     res.json({"events": returnedEvents});
 });
 
-function distanceSearchRadius(meters) {
-    return meters / 6378152.1408;
-}
-
+/**
+ * @swagger
+ * /events/id:
+ *   get:
+ *     summary: Get an event by its id
+ *     description: Returns a single event per its identifier
+ *     responses:
+ *       200:
+ *         description: an event
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: event
+ *               items:
+ *                 $ref: "#/components/schemas/Event"
+ */
 router.get('/:id', async (req, res) => {
     const id = req.params.id;
     Event.findById(id, (error, documents) => {
@@ -64,24 +110,27 @@ router.get('/:id', async (req, res) => {
     });
 });
 
-function setUpNewImageFolder(event) {
-    const folderName = event.id.toString() + "/";
-    const params = {
-      Bucket: 'afterparty-staging-images',
-      Key: folderName,
-      Body: ''
-    };
-    s3.putObject(params, (err, data) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(`Successfully created folder ${folderName} in S3 bucket`);
-      }
-    });
-}
-
+/**
+ * @swagger
+ * /events:
+ *   post:
+ *     summary: Add a new event
+ *     description: Opens a new valid event that can be joined
+ *     responses:
+ *       201:
+ *         description: Returns an event that has just been created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: event
+ *               items:
+ *                 $ref: "#/components/schemas/Event"
+ */
 router.post('/', async (req, res) => {
     let now = new Date();
+    let endDate = new Date(req.body.endDate);
+    let destroyDate = newDate(endDate);
+    destroyDate.setHours(endDate.getHours() + 24);
     const newEvent = new Event({
         location: { type: "Point", coordinates: [req.body.location.longitude, req.body.location.latitude] },
         foursquareData: { id: req.body.foursquareData.id, name: req.body.foursquareData.name, address: { formattedString: req.body.foursquareData.address.formattedString }, category: { name: req.body.foursquareData.category.name, id: req.body.foursquareData.category.id }},
@@ -91,7 +140,8 @@ router.post('/', async (req, res) => {
         description: req.body.description,
         createdAt: now,
         startDate: new Date(req.body.startDate),
-        endDate: new Date(req.body.endDate),
+        endDate: endDate,
+        destroyDate: destroyDate,
         lastUpdated: now
     });
 
