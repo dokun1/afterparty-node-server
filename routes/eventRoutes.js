@@ -153,7 +153,7 @@ router.post('/', async (req, res) => {
         } else {
             res.status(201);
             let response = result.toiOSClient();
-            setUpNewImageFolder(response);
+            // setUpNewImageFolder(response);
             res.json(response);
         }
     })
