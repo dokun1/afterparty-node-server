@@ -11,6 +11,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,8 +22,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-sonnet-4-5-20250929
-          direct_prompt: |
+          claude_args: "--model claude-sonnet-4-5-20250929"
+          prompt: |
             Review this PR as a database expert. Focus on:
             - Schema design: normalization, appropriate types, sensible defaults
             - Drizzle ORM usage: idiomatic patterns, proper relations
@@ -30,7 +31,6 @@ jobs:
             - Migration safety: backwards-compatible changes, data loss risks
             - PostgreSQL best practices: proper use of PostGIS, tsvector, jsonb
             Keep feedback smooth and simple. Flag real issues, not style nitpicks.
-          timeout_minutes: 10
 
   performance-review:
     name: Performance Expert Review
@@ -38,6 +38,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,8 +49,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-sonnet-4-5-20250929
-          direct_prompt: |
+          claude_args: "--model claude-sonnet-4-5-20250929"
+          prompt: |
             Review this PR as a performance and cost expert. Focus on:
             - Neon/Vercel cost implications: connection pooling, cold starts, function duration
             - Unnecessary database round-trips or redundant queries
@@ -58,7 +59,6 @@ jobs:
             - Memory usage: streaming vs buffering, large array operations
             - Caching opportunities that would meaningfully reduce cost
             Focus on things that would actually cost money or cause latency spikes. Ignore micro-optimizations.
-          timeout_minutes: 10
 
   typescript-review:
     name: TypeScript Expert Review
@@ -66,6 +66,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -76,8 +77,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-sonnet-4-5-20250929
-          direct_prompt: |
+          claude_args: "--model claude-sonnet-4-5-20250929"
+          prompt: |
             Review this PR as a TypeScript expert. Focus on:
             - Type safety: proper use of generics, avoiding `any`, narrowing
             - Code readability: clear naming, small functions, obvious control flow
@@ -86,7 +87,6 @@ jobs:
             - Module organization: clean imports, minimal coupling
             - Would a new contributor understand this code without extra context?
             Be practical. Flag things that hurt readability or type safety, not personal style preferences.
-          timeout_minutes: 10
 
   security-review:
     name: Security Expert Review
@@ -94,6 +94,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -104,8 +105,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-sonnet-4-5-20250929
-          direct_prompt: |
+          claude_args: "--model claude-sonnet-4-5-20250929"
+          prompt: |
             Review this PR as a security expert. Focus on:
             - Auth: JWT handling, token storage, refresh token rotation
             - Input validation: SQL injection via raw queries, XSS in user content
@@ -114,4 +115,3 @@ jobs:
             - OWASP Top 10: injection, broken auth, sensitive data exposure
             - Rate limiting: abuse vectors, missing limits on sensitive endpoints
             Flag actual risks with severity (critical/high/medium/low). Do not flag theoretical risks that require already-compromised infrastructure.
-          timeout_minutes: 10
