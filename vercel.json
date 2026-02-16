@@ -2,11 +2,5 @@
   "buildCommand": "npm run build",
   "rewrites": [
     { "source": "/(.*)", "destination": "/api" }
-  ],
-  "crons": [
-    {
-      "path": "/api/v1/cron/event-lifecycle",
-      "schedule": "*/5 * * * *"
-    }
   ]
 }
