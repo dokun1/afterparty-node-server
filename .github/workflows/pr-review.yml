@@ -23,6 +23,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_args: "--model claude-sonnet-4-5-20250929"
+          show_full_output: true
           prompt: |
             Review ONLY the files and lines changed in this PR. Do not review the entire codebase.
             If the changes are trivial (config tweaks, typo fixes, dependency bumps), say so briefly and move on.
