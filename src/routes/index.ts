@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { env } from '../config/env';
 
 const router = Router();
 
@@ -10,8 +11,13 @@ router.get('/health', (_req, res) => {
 // Vercel Cron — event lifecycle (runs every 5 min)
 // Vercel sets this header to prevent external callers from triggering it
 router.get('/cron/event-lifecycle', (req, res) => {
+  if (!env.CRON_SECRET) {
+    res.status(503).json({ error: 'Cron not configured' });
+    return;
+  }
+
   const authHeader = req.headers.authorization;
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${env.CRON_SECRET}`) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }

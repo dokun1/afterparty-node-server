@@ -21,5 +21,8 @@ export const media = pgTable(
     downloadable: boolean('downloadable').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index('media_event_id_idx').on(table.eventId)],
+  (table) => [
+    index('media_event_id_idx').on(table.eventId),
+    index('media_uploaded_by_id_idx').on(table.uploadedById),
+  ],
 );

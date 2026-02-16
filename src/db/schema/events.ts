@@ -40,7 +40,7 @@ export const events = pgTable(
     foursquareData: jsonb('foursquare_data'),
     tags: text('tags').array(),
     isPrivate: boolean('is_private').notNull().default(false),
-    password: varchar('password', { length: 255 }),
+    passwordHash: varchar('password_hash', { length: 255 }),
     mediaAccepts: text('media_accepts').array().default(sql`ARRAY['photo','video','audio']`),
     startDate: timestamp('start_date', { withTimezone: true }).notNull(),
     endDate: timestamp('end_date', { withTimezone: true }).notNull(),
